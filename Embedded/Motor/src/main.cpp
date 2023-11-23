@@ -8,7 +8,7 @@ PubSubClient mqttClient(espClient);
 const char *WIFI_SSID = "JoKeWi";
 const char *WIFI_PASSWORD = "Titap;4JkW.be";
 
-const char *MQTT_SERVER = "13.93.84.122";
+const char *MQTT_SERVER = "23.97.138.160";
 const int MQTT_PORT = 1883;
 const char *MQTT_USER = "bally";
 const char *MQTT_PASSWORD = "BallyDeGluurder";
@@ -16,9 +16,9 @@ const String MQTT_CLIENTID = "ESP32-" + String(random(0xffff), HEX);
 
 const int LED_PIN = 2;
 
-const int MOTOR1_IN1 = 2;
-const int MOTOR1_IN2 = 4;
-const int MOTOR1_PWM = 15;
+const int MOTOR1_IN1 = 22;
+const int MOTOR1_IN2 = 23;
+const int MOTOR1_PWM = 21;
 
 const int MOTOR2_IN3 = 12;
 const int MOTOR2_IN4 = 13;
@@ -27,6 +27,7 @@ const int MOTOR2_PWM = 14;
 const int PWM_FREQ = 5000;
 const int PWM_RESOLUTION = 8;
 const int MOTOR_LEFT_PWM_CHANNEL = 0;
+const int MOTOR_RIGHT_PWM_CHANNEL = 1;
 
 unsigned long startMillis = 0;
 unsigned long lastMessageMillis = 0;
@@ -46,6 +47,8 @@ void printMqttMessage(char *topic, byte *payload, unsigned int length)
 void callbackMQTT(char *topic, byte *payload, unsigned int length)
 {
   printMqttMessage(topic, payload, length);
+
+  Serial.println("Parsing JSON" + String((char *)payload));
 
   DynamicJsonDocument doc(1024);
   deserializeJson(doc, payload);
@@ -144,7 +147,10 @@ void setup()
   pinMode(MOTOR2_PWM, OUTPUT);
 
   ledcSetup(MOTOR_LEFT_PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
-  ledcAttachPin(MOTOR2_PWM, MOTOR_LEFT_PWM_CHANNEL);
+  ledcAttachPin(MOTOR1_PWM, MOTOR_LEFT_PWM_CHANNEL);
+
+  ledcSetup(MOTOR_RIGHT_PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
+  ledcAttachPin(MOTOR2_PWM, MOTOR_RIGHT_PWM_CHANNEL);
 
   connectToWifi();
   connectToMqtt();

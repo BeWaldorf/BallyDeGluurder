@@ -1,15 +1,13 @@
 #include <WiFi.h>
 #include "esp_camera.h"
-#include <ArduinoWebsockets.h>
-
-using namespace websockets;
+#include <HTTPClient.h>
 
 WiFiClient espClient;
 
-const char *websockets_server = "ws://23.97.138.160:3000";
-
 const char *WIFI_SSID = "JoKeWi";
 const char *WIFI_PASSWORD = "Titap;4JkW.be";
+
+const char *SERVER_NAME = "http://13.93.84.122:3000/upload";
 
 #define CAMERA_MODEL_AI_THINKER
 
@@ -18,34 +16,6 @@ const char *WIFI_PASSWORD = "Titap;4JkW.be";
 const int LED_PIN = 33;
 
 unsigned long startMillis = 0;
-
-void onMessageCallback(WebsocketsMessage message)
-{
-  Serial.print("Got Message: ");
-  Serial.println(message.data());
-}
-
-void onEventsCallback(WebsocketsEvent event, String data)
-{
-  if (event == WebsocketsEvent::ConnectionOpened)
-  {
-    Serial.println("Connnection Opened");
-  }
-  else if (event == WebsocketsEvent::ConnectionClosed)
-  {
-    Serial.println("Connnection Closed");
-  }
-  else if (event == WebsocketsEvent::GotPing)
-  {
-    Serial.println("Got a Ping!");
-  }
-  else if (event == WebsocketsEvent::GotPong)
-  {
-    Serial.println("Got a Pong!");
-  }
-}
-
-WebsocketsClient client;
 
 void connectToWifi()
 {
@@ -113,37 +83,43 @@ void setup()
   }
 
   connectToWifi();
-
-  // Setup Callbacks
-  client.onMessage(onMessageCallback);
-  client.onEvent(onEventsCallback);
-
-  // Connect to server
-  client.connect(websockets_server);
-
-  // Send a message
-  client.send("Hi Server!");
-  // Send a ping
-  client.ping();
 }
 
 void sendPic()
 {
-  client.poll();
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    camera_fb_t *fb = esp_camera_fb_get();
-    if (!fb)
-    {
-      Serial.println("Camera capture failed");
-      return;
-    }
+  camera_fb_t *fb = NULL;
 
-    // Verstuur het frame als een binair bericht
-    client.sendBinary((const char *)fb->buf, fb->len);
-    esp_camera_fb_return(fb);
+  // Neem een foto
+  fb = esp_camera_fb_get();
+  if (!fb)
+  {
+    Serial.println("Camera capture failed");
+    return;
   }
-  // delay(100);
+
+  // Verstuur de foto
+  HTTPClient http;
+  http.begin(SERVER_NAME);
+  http.addHeader("Content-Type", "image/jpeg");
+  int httpResponseCode = http.POST(fb->buf, fb->len);
+
+  if (httpResponseCode > 0)
+  {
+    String response = http.getString();
+    Serial.println(httpResponseCode);
+    Serial.println(response);
+  }
+  else
+  {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+  }
+
+  // Bevrijd de geheugen
+  esp_camera_fb_return(fb);
+
+  // Wacht een tijdje voor de volgende foto
+  delay(5000);
 }
 
 void loop()
