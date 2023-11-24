@@ -1,5 +1,7 @@
 import express from 'express';
 import { WebSocketServer } from 'ws';
+//import { spawn } from 'child_process';
+import ffmpeg from 'fluent-ffmpeg';
 
 const PORT = 3000;
 const APP = express();
@@ -8,7 +10,7 @@ const sensorData = [];
 
 // #region WEBSERVER
 // ---------------------------------------
-APP.use("/embedded", express.static("../frontend/dashboard"));
+//APP.use("/embedded", express.static("../frontend/dashboard"));
 // ---------------------------------------
 // #endregion
 
@@ -16,6 +18,32 @@ APP.use("/embedded", express.static("../frontend/dashboard"));
 // #region REST API
 // ---------------------------------------
 /* ---ACTIVATE MIDDLEWARE--- */
+
+
+/* const ffmpegProcess = spawn('ffmpeg', [
+    '-stream_loop', '-1',
+    '-i', '/home/waldorf/example.mp4',
+    '-c:v', 'copy',
+    '-c:a', 'aac',
+    '-fflags', '+genpts',
+    '-f', 'flv',
+    'http://127.0.0.1:3000'
+  ]); */
+
+  // Handle FFmpeg process events
+/* ffmpegProcess.stdout.on('data', data => {
+    console.log(`stdout: ${data}`);
+  });
+  
+  ffmpegProcess.stderr.on('data', data => {
+    console.error(`stderr: ${data}`);
+  });
+  
+  ffmpegProcess.on('close', code => {
+    console.log(`child process exited with code ${code}`);
+  }); */
+
+
 APP.use(express.json());
 
 
@@ -27,6 +55,13 @@ APP.get("/getData", (req, res) => {
     });
     res.send(JSON.stringify(newData));
 });
+
+APP.get('/vidya',(req,res)=>{
+    const command = ffmpeg('/home/waldorf/example.mp4').format('mpegts');
+
+    command.pipe(res, { end: true });
+
+})
 
 //http://192.168.0.4:2022/update-sensor
 APP.post("/update-sensor", (req, res) => {
