@@ -5,8 +5,8 @@
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 
-const char *WIFI_SSID = "JoKeWi";
-const char *WIFI_PASSWORD = "Titap;4JkW.be";
+const char *WIFI_SSID = "BillyTheRobot";
+const char *WIFI_PASSWORD = "eloict1234";
 
 const char *MQTT_SERVER = "23.97.138.160";
 const int MQTT_PORT = 1883;

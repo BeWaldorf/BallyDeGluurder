@@ -1,15 +1,26 @@
 #include <WiFi.h>
 #include "esp_camera.h"
 #include <ArduinoWebsockets.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
 
 using namespace websockets;
 
 WiFiClient espClient;
+PubSubClient mqttClient(espClient);
 
 const char *websockets_server = "ws://23.97.138.160:3000";
 
-const char *WIFI_SSID = "JoKeWi";
-const char *WIFI_PASSWORD = "Titap;4JkW.be";
+const char *WIFI_SSID = "BillyTheRobot";
+const char *WIFI_PASSWORD = "eloict1234";
+
+const char *MQTT_SERVER = "23.97.138.160";
+const int MQTT_PORT = 1883;
+const char *MQTT_USER = "bally";
+const char *MQTT_PASSWORD = "BallyDeGluurder";
+const String MQTT_CLIENTID = "ESP32-" + String(random(0xffff), HEX);
+
+const int FLASH_PIN = 4;
 
 #define CAMERA_MODEL_AI_THINKER
 
@@ -18,6 +29,56 @@ const char *WIFI_PASSWORD = "Titap;4JkW.be";
 const int LED_PIN = 33;
 
 unsigned long startMillis = 0;
+
+void printMqttMessage(char *topic, byte *payload, unsigned int length)
+{
+  Serial.print("Boodschap ontvangen voor topic [");
+  Serial.print(topic);
+  Serial.print("] : ");
+  for (int i = 0; i < length; i++)
+  {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+}
+
+void callbackMQTT(char *topic, byte *payload, unsigned int length)
+{
+  printMqttMessage(topic, payload, length);
+
+  Serial.println("Parsing JSON" + String((char *)payload));
+
+  DynamicJsonDocument doc(1024);
+  deserializeJson(doc, payload);
+
+  int speed = doc["flash"].as<int>();
+
+  Serial.println("Speed: " + String(speed));
+
+  delay(15);
+
+  digitalWrite(FLASH_PIN, speed);
+}
+void connectToMqtt()
+{
+  Serial.print("Connecting to MQTT ..");
+  mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+  mqttClient.setCallback(callbackMQTT);
+  while (!mqttClient.connected())
+  {
+    Serial.print(".");
+    if (mqttClient.connect(MQTT_CLIENTID.c_str(), MQTT_USER, MQTT_PASSWORD))
+    {
+      Serial.println("connected");
+    }
+    else
+    {
+      Serial.print("failed with state ");
+      Serial.print(mqttClient.state());
+      delay(2000);
+    }
+  }
+}
 
 void onMessageCallback(WebsocketsMessage message)
 {
@@ -113,6 +174,8 @@ void setup()
   }
 
   connectToWifi();
+  connectToMqtt();
+  mqttClient.subscribe("bally/flash");
 
   // Setup Callbacks
   client.onMessage(onMessageCallback);
@@ -143,7 +206,7 @@ void sendPic()
     client.sendBinary((const char *)fb->buf, fb->len);
     esp_camera_fb_return(fb);
   }
-  // delay(100);
+  delay(5000);
 }
 
 void loop()
@@ -156,5 +219,12 @@ void loop()
   {
     digitalWrite(LED_PIN, LOW);
     sendPic();
+
+    if (!mqttClient.connected())
+    {
+      connectToMqtt();
+    }
+
+    mqttClient.loop();
   }
 }
