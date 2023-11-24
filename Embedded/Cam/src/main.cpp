@@ -18,7 +18,7 @@ const char *MQTT_SERVER = "23.97.138.160";
 const int MQTT_PORT = 1883;
 const char *MQTT_USER = "bally";
 const char *MQTT_PASSWORD = "BallyDeGluurder";
-const String MQTT_CLIENTID = "ESP32-" + String(random(0xffff), HEX);
+const String MQTT_CLIENTID = "ESP3-" + String(random(0xffff), HEX);
 
 const int FLASH_PIN = 4;
 
