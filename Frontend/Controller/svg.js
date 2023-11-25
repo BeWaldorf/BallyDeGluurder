@@ -31,27 +31,27 @@ template.innerHTML = /*html*/`
         <!-- Create image definitions-->
         <defs>
           <pattern id='img_arw_U' width="1" height="1" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <image href='./Controller_P/images/Arrow_U.png' alt='Up arrow' width="100" height="100" preserveAspectRatio="none"></image>
+            <image href='./Controller/images/Arrow_U.png' width="100" height="100" preserveAspectRatio="none"></image>
           </pattern>
 
           <pattern id='img_arw_L' width="1" height="1" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <image href='./Controller_P/images/Arrow_L.png' width="100" height="100" preserveAspectRatio="none"></image>
+            <image href='./Controller/images/Arrow_L.png' width="100" height="100" preserveAspectRatio="none"></image>
           </pattern>
 
           <pattern id='img_arw_R' width="1" height="1" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <image href='./Controller_P/images/Arrow_R.png' width="100" height="100" preserveAspectRatio="none"></image>
+            <image href='./Controller/images/Arrow_R.png' width="100" height="100" preserveAspectRatio="none"></image>
           </pattern>
 
           <pattern id='img_arw_D' width="1" height="1" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <image href='./Controller_P/images/Arrow_D.png' width="100" height="100" preserveAspectRatio="none"></image>
+            <image href='./Controller/images/Arrow_D.png' width="100" height="100" preserveAspectRatio="none"></image>
           </pattern>
 
           <pattern id='img_start_B' width="1" height="1" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <image href='./Controller_P/images/start_B.png' width="100" height="100" preserveAspectRatio="none"></image>
+            <image href='./Controller/images/Flash.png' width="100" height="100" preserveAspectRatio="none"></image>
           </pattern>
 
           <pattern id='img_stop_B' width="1" height="1" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <image href='./Controller_P/images/stop_B.png' width="100" height="100" preserveAspectRatio="none"></image>
+            <image href='./Controller/images/FlashExclamantion.png' width="100" height="100" preserveAspectRatio="none"></image>
           </pattern>
         </defs>
 
