@@ -1,9 +1,11 @@
-#include <WiFi.h>
-#include <PubSubClient.h>
+#include <Arduino.h>
 #include <ArduinoJson.h>
+#include <WiFi.h>
+#include "WiFiManager.h"
+#include "MQTTManager.h"
+#include "display.h"
 
 WiFiClient espClient;
-PubSubClient mqttClient(espClient);
 
 const char *WIFI_SSID = "BillyTheRobot";
 const char *WIFI_PASSWORD = "eloict1234";
@@ -15,22 +17,42 @@ const char *MQTT_PASSWORD = "BallyDeGluurder";
 const String MQTT_CLIENTID = "ESP32-" + String(random(0xffff), HEX);
 
 const int LED_PIN = 2;
+const int BATTERY_PIN = 34;
+const float R1 = 1000000; // 1MΩ
+const float R2 = 560000;  // 560KΩ
+const float BATTERY_MAX_VOLTAGE = 4.8;
 
+const int MOTOR1_ENA = 21;
 const int MOTOR1_IN1 = 22;
 const int MOTOR1_IN2 = 23;
-const int MOTOR1_PWM = 21;
 
 const int MOTOR2_IN3 = 12;
 const int MOTOR2_IN4 = 13;
-const int MOTOR2_PWM = 14;
+const int MOTOR2_ENB = 14;
 
 const int PWM_FREQ = 5000;
 const int PWM_RESOLUTION = 8;
 const int MOTOR_LEFT_PWM_CHANNEL = 0;
 const int MOTOR_RIGHT_PWM_CHANNEL = 1;
 
+bool newMQTTMessage = false;
+char direction = 's'; // Standaardwaarde, bijvoorbeeld 's' voor stop
+int speed = 0;
+
 unsigned long startMillis = 0;
 unsigned long lastMessageMillis = 0;
+
+WiFiManager wifiManager(WIFI_SSID, WIFI_PASSWORD);
+MQTTManager mqttManager(espClient, MQTT_SERVER, MQTT_PORT, MQTT_USER, MQTT_PASSWORD, MQTT_CLIENTID.c_str());
+
+int readBatteryLevel()
+{
+  int analogValue = analogRead(BATTERY_PIN);
+  float voltage = (analogValue / 4095.0) * 3.3;
+  float batteryVoltage = voltage / (R2 / (R1 + R2));
+  float level = map(batteryVoltage, 0, BATTERY_MAX_VOLTAGE, 1, 5);
+  return level;
+}
 
 void printMqttMessage(char *topic, byte *payload, unsigned int length)
 {
@@ -44,23 +66,8 @@ void printMqttMessage(char *topic, byte *payload, unsigned int length)
   Serial.println();
 }
 
-void callbackMQTT(char *topic, byte *payload, unsigned int length)
+void updateMotorControl(char direction, int speed)
 {
-  printMqttMessage(topic, payload, length);
-
-  Serial.println("Parsing JSON" + String((char *)payload));
-
-  DynamicJsonDocument doc(1024);
-  deserializeJson(doc, payload);
-
-  char direction = doc["direction"].as<String>().charAt(0);
-  int speed = doc["speed"].as<int>();
-
-  Serial.print("Direction: ");
-  Serial.println(direction);
-  Serial.print("Speed: ");
-  Serial.println(speed);
-
   ledcWrite(MOTOR_LEFT_PWM_CHANNEL, speed);
   delay(15);
 
@@ -70,6 +77,8 @@ void callbackMQTT(char *topic, byte *payload, unsigned int length)
     digitalWrite(MOTOR1_IN2, LOW);
     digitalWrite(MOTOR2_IN3, HIGH);
     digitalWrite(MOTOR2_IN4, LOW);
+    drawVerticalSlider(0, speed, "Links");
+    drawVerticalSlider(44, speed, "Rechts");
   }
   else if (direction == 'b')
   {
@@ -77,6 +86,8 @@ void callbackMQTT(char *topic, byte *payload, unsigned int length)
     digitalWrite(MOTOR1_IN2, HIGH);
     digitalWrite(MOTOR2_IN3, LOW);
     digitalWrite(MOTOR2_IN4, HIGH);
+    drawVerticalSlider(0, -speed, "Links");
+    drawVerticalSlider(44, -speed, "Rechts");
   }
   else if (direction == 'l')
   {
@@ -84,6 +95,8 @@ void callbackMQTT(char *topic, byte *payload, unsigned int length)
     digitalWrite(MOTOR1_IN2, HIGH);
     digitalWrite(MOTOR2_IN3, HIGH);
     digitalWrite(MOTOR2_IN4, LOW);
+    drawVerticalSlider(0, speed, "Links");
+    drawVerticalSlider(44, 0, "Rechts");
   }
   else if (direction == 'r')
   {
@@ -91,6 +104,8 @@ void callbackMQTT(char *topic, byte *payload, unsigned int length)
     digitalWrite(MOTOR1_IN2, LOW);
     digitalWrite(MOTOR2_IN3, LOW);
     digitalWrite(MOTOR2_IN4, HIGH);
+    drawVerticalSlider(0, 0, "Links");
+    drawVerticalSlider(44, speed, "Rechts");
   }
   else if (direction == 's')
   {
@@ -98,104 +113,61 @@ void callbackMQTT(char *topic, byte *payload, unsigned int length)
     digitalWrite(MOTOR1_IN2, LOW);
     digitalWrite(MOTOR2_IN3, LOW);
     digitalWrite(MOTOR2_IN4, LOW);
+    drawVerticalSlider(0, 0, "Links");
+    drawVerticalSlider(44, 0, "Rechts");
   }
 }
 
-void connectToWifi()
+void callbackMQTT(char *topic, byte *payload, unsigned int length)
 {
-  Serial.print("Connecting to WiFi ..");
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.print(".");
-    delay(1000);
-  }
-  Serial.println(WiFi.localIP());
-}
+  newMQTTMessage = true;
+  printMqttMessage(topic, payload, length);
 
-void connectToMqtt()
-{
-  Serial.print("Connecting to MQTT ..");
-  mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-  mqttClient.setCallback(callbackMQTT);
-  while (!mqttClient.connected())
-  {
-    Serial.print(".");
-    if (mqttClient.connect(MQTT_CLIENTID.c_str(), MQTT_USER, MQTT_PASSWORD))
-    {
-      Serial.println("connected");
-    }
-    else
-    {
-      Serial.print("failed with state ");
-      Serial.print(mqttClient.state());
-      delay(2000);
-    }
-  }
+  Serial.println("Parsing JSON" + String((char *)payload));
+
+  DynamicJsonDocument doc(1024);
+  deserializeJson(doc, payload);
+
+  direction = doc["direction"].as<String>().charAt(0);
+  speed = doc["speed"].as<int>();
+
+  Serial.print("Direction: ");
+  Serial.println(direction);
+  Serial.print("Speed: ");
+  Serial.println(speed);
+
+  clearDisplay();
+  updateMotorControl(direction, speed); // Deze functie stuurt de motoren aan en tekent de sliders
+  showDisplay();
 }
 
 void setup()
 {
   Serial.begin(115200);
-  pinMode(LED_PIN, OUTPUT);
-  pinMode(MOTOR1_IN1, OUTPUT);
-  pinMode(MOTOR1_IN2, OUTPUT);
-  pinMode(MOTOR2_IN3, OUTPUT);
-  pinMode(MOTOR2_IN4, OUTPUT);
-  pinMode(MOTOR1_PWM, OUTPUT);
-  pinMode(MOTOR2_PWM, OUTPUT);
+  initDisplay();
 
-  ledcSetup(MOTOR_LEFT_PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
-  ledcAttachPin(MOTOR1_PWM, MOTOR_LEFT_PWM_CHANNEL);
-
-  ledcSetup(MOTOR_RIGHT_PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
-  ledcAttachPin(MOTOR2_PWM, MOTOR_RIGHT_PWM_CHANNEL);
-
-  connectToWifi();
-  connectToMqtt();
-  mqttClient.subscribe("bally/directions");
-}
-
-void wifiWatchdog(unsigned long currentMillis)
-{
-  if ((WiFi.status() != WL_CONNECTED) && (currentMillis - startMillis >= 30000))
-  {
-    Serial.println("Reconnecting WiFi");
-    digitalWrite(LED_PIN, LOW);
-    WiFi.disconnect();
-    WiFi.reconnect();
-    startMillis = currentMillis;
-  }
+  wifiManager.connect();
+  mqttManager.setCallback(callbackMQTT);
+  mqttManager.connect();
+  mqttManager.subscribe("bally/joystick");
 }
 
 void loop()
 {
-  unsigned long currentMillis = millis();
-
-  wifiWatchdog(currentMillis);
-
-  if (WiFi.status() == WL_CONNECTED)
+  wifiManager.reconnectIfNeeded();
+  if (wifiManager.isConnected())
   {
-    digitalWrite(LED_PIN, HIGH);
-
-    if (!mqttClient.connected())
+    if (!mqttManager.isConnected())
     {
-      connectToMqtt();
+      mqttManager.connect();
     }
+    mqttManager.loop();
 
-    mqttClient.loop();
+    int batteryLevel = readBatteryLevel();
 
-    // // hier periodiek publishen
-    // if (currentMillis - lastMessageMillis > 5000)
-    // {
-    //   lastMessageMillis = millis();
-    //   counter++;
-    //   String msg = "hello world " + String(counter);
-    //   String topic = "ucll/test";
-    //   mqttClient.publish(topic.c_str(), msg.c_str());
-    //   Serial.print("Boodschap gepubliceerd voor topic [" + topic + "] : ");
-    //   Serial.println(msg);
-    // }
+    clearDisplay();
+    updateMotorControl(direction, speed);
+    drawBatteryIndicator(88, batteryLevel, "Bat.");
+    showDisplay();
   }
 }

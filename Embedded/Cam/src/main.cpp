@@ -3,8 +3,11 @@
 #include <ArduinoWebsockets.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <WebServer.h>
 
 using namespace websockets;
+
+WebServer server(80);
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -133,6 +136,45 @@ void wifiWatchdog(unsigned long currentMillis)
   }
 }
 
+void handle_jpg_stream(void)
+{
+  WiFiClient client = server.client();
+  String response = "HTTP/1.1 200 OK\r\n";
+  response += "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n\r\n";
+  server.sendContent(response);
+
+  while (1)
+  {
+    camera_fb_t *fb = NULL;
+    fb = esp_camera_fb_get();
+    if (!fb)
+    {
+      Serial.println("Camera capture failed");
+      return;
+    }
+    response = "--frame\r\n";
+    response += "Content-Type: image/jpeg\r\n\r\n";
+    server.sendContent(response);
+    client.write((char *)fb->buf, fb->len);
+    server.sendContent("\r\n");
+    esp_camera_fb_return(fb);
+
+    if (!client.connected())
+    {
+      break;
+    }
+  }
+}
+
+void startCameraServer()
+{
+  server.on("/stream", HTTP_GET, handle_jpg_stream);
+  server.begin();
+  Serial.println("Camera Ready! Use 'http://");
+  Serial.print(WiFi.localIP());
+  Serial.println("' to connect");
+}
+
 void setup()
 {
   Serial.begin(115200);
@@ -155,15 +197,15 @@ void setup()
   config.pin_pclk = PCLK_GPIO_NUM;
   config.pin_vsync = VSYNC_GPIO_NUM;
   config.pin_href = HREF_GPIO_NUM;
-  config.pin_sscb_sda = SIOD_GPIO_NUM;
-  config.pin_sscb_scl = SIOC_GPIO_NUM;
+  config.pin_sccb_sda = SIOD_GPIO_NUM;
+  config.pin_sccb_scl = SIOC_GPIO_NUM;
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
   config.frame_size = FRAMESIZE_UXGA;
-  config.jpeg_quality = 10;
-  config.fb_count = 1;
+  config.jpeg_quality = 12;
+  config.fb_count = 2;
 
   // Camera init
   esp_err_t err = esp_camera_init(&config);
@@ -184,10 +226,7 @@ void setup()
   // Connect to server
   client.connect(websockets_server);
 
-  // Send a message
-  client.send("Hi Server!");
-  // Send a ping
-  client.ping();
+  startCameraServer();
 }
 
 void sendPic()
@@ -211,20 +250,20 @@ void sendPic()
 
 void loop()
 {
-  unsigned long currentMillis = millis();
+  // unsigned long currentMillis = millis();
 
-  wifiWatchdog(currentMillis);
+  // wifiWatchdog(currentMillis);
 
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    digitalWrite(LED_PIN, LOW);
-    sendPic();
+  // if (WiFi.status() == WL_CONNECTED)
+  // {
+  //   digitalWrite(LED_PIN, LOW);
+  //   sendPic();
 
-    if (!mqttClient.connected())
-    {
-      connectToMqtt();
-    }
+  //   if (!mqttClient.connected())
+  //   {
+  //     connectToMqtt();
+  //   }
 
-    mqttClient.loop();
-  }
+  //   mqttClient.loop();
+  // }
 }
