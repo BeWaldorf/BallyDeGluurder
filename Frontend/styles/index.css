@@ -7,18 +7,42 @@ body {
   font-optical-sizing: auto;
   font-size: 15px;
   text-align: center;
+  background-color: rgb(50, 50, 50);
 }
 
 #container {
   border: 1px 1px;
   border-color: black;
-  border-radius: 5px;
+  border-radius: 30px;
   border-style: groove;
+  margin: 5px 20px 0px 20px;
+  background-color: rgb(248, 248, 248);
+  transition: filter 2s;
 }
 
-p {
+#container:hover {
+  filter: brightness(85%);
+  animation-delay: 5ms;
+} 
+
+h1 {
+  font-size: 50px;
+  color: rgb(248, 248, 248);
+}
+
+div#customVideoComp {
+  height: 400px;
+  width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
   border: 1px 1px;
   border-color: black;
   border-radius: 5px;
   border-style: groove;
+  box-shadow: 
+    5px 5px 5px 1px rgba(0, 0, 0, 0.2),
+    -5px -5px 5px 1px rgba(0, 0, 0, 0.2),
+    5px -5px 5px 1px rgba(0, 0, 0, 0.2),
+    -5px 5px 5px 1px rgba(0, 0, 0, 0.2);
 }
