@@ -7,7 +7,7 @@ template.innerHTML = /*html*/`
   <style>
     p{
         margin: 5px;
-        color: white;
+        color: rgb(248, 248, 248);
     }
   </style>
   <body>
@@ -41,3 +41,9 @@ window.customElements.define('navitem-r', class extends HTMLElement {
 });
 
 //#endregion CLASS
+
+/*
+*-------------------------------------------------------------------------------------------------
+* Made by Philip Mulders
+*-------------------------------------------------------------------------------------------------
+*/

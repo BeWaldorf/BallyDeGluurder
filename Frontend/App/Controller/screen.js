@@ -1,5 +1,4 @@
 //#region IMPORTS
-//import './app.js';
 //#endregion IMPORTS
 
 //#region TEMPLATE
@@ -44,3 +43,9 @@ window.customElements.define('screen-r', class extends HTMLElement {
   }
 });
 //#endregion CLASS
+
+/*
+*-------------------------------------------------------------------------------------------------
+* Made by Philip Mulders
+*-------------------------------------------------------------------------------------------------
+*/

@@ -8,6 +8,7 @@ template.innerHTML = /*html*/`
   <style>
     nav{
       display: flex;
+      justify-content: space-evenly;
     }
   </style>
   <body>
@@ -44,3 +45,9 @@ window.customElements.define('nav-r', class extends HTMLElement {
 });
 
 //#endregion CLASS
+
+/*
+*-------------------------------------------------------------------------------------------------
+* Made by Philip Mulders
+*-------------------------------------------------------------------------------------------------
+*/
