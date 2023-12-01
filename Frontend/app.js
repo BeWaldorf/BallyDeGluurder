@@ -1,0 +1,125 @@
+//#region IMPORTS
+import './Controller/svg.js';
+import './Navigation/nav.js';
+import './Battery/powerdisplay.js';
+import './Battery/efficiency.js';
+import './Controller/screen.js';
+//#endregion IMPORTS
+
+//#region TEMPLATE
+let template = document.createElement('template');
+template.innerHTML = /*html*/`
+  <style>
+      *{
+        margin: 0px;
+        padding: 0px;
+      }
+      body {
+        font-family: Verdana, sans-serif;
+        font-optical-sizing: auto;
+        font-size: 15px;
+        background-color: rgb(50, 50, 50);
+      }
+
+      #container {
+        text-align: center;
+        border: 1px 1px;
+        border-color: black;
+        border-radius: 30px;
+        border-style: groove;
+        margin: 0px 20px;
+        background-color: rgb(248, 248, 248);
+        transition: filter 2s;
+      }
+
+      #container:hover {
+        filter: brightness(85%);
+        animation-delay: 5ms;
+      } 
+
+      h1 {
+        text-align: center;
+        font-size: 50px;
+        color: rgb(248, 248, 248);
+      }
+
+      div#customVideoComp {
+        height: 400px;
+        width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 10px;
+        border: 1px 1px;
+        border-color: black;
+        border-radius: 5px;
+        border-style: groove;
+        box-shadow: 
+          5px 5px 5px 1px rgba(0, 0, 0, 0.2),
+          -5px -5px 5px 1px rgba(0, 0, 0, 0.2),
+          5px -5px 5px 1px rgba(0, 0, 0, 0.2),
+          -5px 5px 5px 1px rgba(0, 0, 0, 0.2);
+      }
+      div#navbar {
+        margin-left: 10px;
+      }
+  </style>
+  <body>
+    <h1>Car goes vroooem</h1>
+    <div id="navbar"><nav-r></nav-r></div>
+    <div id="container" containerMode="Controller">
+    </div>
+  </body>
+`;
+
+//#endregion TEMPLATE
+
+//#region CLASS
+
+window.customElements.define('app-r', class extends HTMLElement {
+
+    constructor() {
+      super();
+      this._shadowRoot = this.attachShadow({ 'mode': 'open' });
+      this._shadowRoot.appendChild(template.content.cloneNode(true)); 
+      this.$container = this._shadowRoot.getElementById("container");
+    }
+
+    connectedCallback() {
+        removeThemAll(this.$container); //remove all childeren
+
+        let newElement = document.createElement('screen-r');
+        this.$container.appendChild(newElement);
+
+        newElement = document.createElement('svg-r');
+        this.$container.appendChild(newElement);
+
+        //following function removes all childeren
+        function removeThemAll(mother){
+          while (mother.firstChild) {
+            mother.removeChild(mother.lastChild);
+          }
+        }
+
+        this.addEventListener('nav-clicked-event', (e) => {
+          this.$container.setAttribute("containerMode", e.detail);
+          //change the containers contents based on the mode it is in.
+          if (e.detail == "Controller"){
+            removeThemAll(this.$container); //remove all childeren
+            let newElement = document.createElement('screen-r');
+            this.$container.appendChild(newElement);
+    
+            newElement = document.createElement('svg-r');
+            this.$container.appendChild(newElement);
+          } else if (e.detail == "Battery"){
+            removeThemAll(this.$container); //remove all childeren
+            newElement = document.createElement('powerdisplay-r');
+            this.$container.appendChild(newElement);
+    
+            newElement = document.createElement('efficiency-r');
+            this.$container.appendChild(newElement);
+          }
+        });
+    }
+});
+
+//#endregion CLASS

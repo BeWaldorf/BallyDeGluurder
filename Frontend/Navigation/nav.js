@@ -1,15 +1,13 @@
 //#region IMPORTS
-//import './app.js';
+import './navitem.js';
 //#endregion IMPORTS
 
 //#region TEMPLATE
 let template = document.createElement('template');
 template.innerHTML = /*html*/`
   <style>
-    a{
-      text-decoration:none;  
-      color: white;  
-      margin: 2px;
+    nav{
+      display: flex;
     }
   </style>
   <body>
@@ -26,28 +24,21 @@ window.customElements.define('nav-r', class extends HTMLElement {
      super();
      this._shadowRoot = this.attachShadow({ 'mode': 'open' });
      this._shadowRoot.appendChild(template.content.cloneNode(true));  
+     //specify the element we want to append our children to
      this.$nav = this._shadowRoot.querySelector('nav');
-     this._list = ["././index.html", "././battery.html"];
+     
+     //construct an array of links.
+     this._list = ["Controller", "Battery"];
   }
 
    connectedCallback() {
+    //create a new item for each link in our array of links.
     this._list.forEach((link)=>{
-        let newElement = document.createElement('a');
-        newElement.setAttribute('href',link);
-        newElement.setAttribute('title',link.split('/').pop().split('.')[0]);
-        newElement.textContent = link.split('/').pop().split('.')[0]; //works //used to just be "link" but this ~ extracts ~
+        let newElement = document.createElement('navitem-r');
+        //set the name, title, and as a result, the container mode we will use, using the navItem's methode.
+        newElement.setAttribute('title', link);
+        //append the child
         this.$nav.appendChild(newElement);
-
-        /*
-        newElement.setAttribute('title',link.split('/').pop().split('.')[0]);
-        let txtContent = link.split('/').pop().split('.')[0];
-        if (txtContent == "index"){
-          newElement.textContent = "home";
-        } else {
-          newElement.textContent = this.textContent;
-        }
-        newElement.textContent = link.split('/').pop().split('.')[0]; //works //used to just be "link" but this ~ extracts ~
-        */
     })
   }
 });

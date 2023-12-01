@@ -1,5 +1,5 @@
 //#region IMPORTS
-import './app.js';
+import '../app.js';
 //#endregion IMPORTS
 
 //#region TEMPLATE

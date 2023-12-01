@@ -109,7 +109,7 @@ window.customElements.define('svg-r', class extends HTMLElement {
    connectedCallback() {
     //right Button
     this.$arrow_right.addEventListener('mousedown',()=>{
-      moveCar("r", 250, this.client);
+      moveCar("r", 100, this.client);
     });
     this.$arrow_right.addEventListener('mouseup',()=>{
       moveCar("s", 250, this.client);
@@ -117,7 +117,7 @@ window.customElements.define('svg-r', class extends HTMLElement {
 
     //left Button
     this.$arrow_left.addEventListener('mousedown',()=>{
-      moveCar("l", 250, this.client);
+      moveCar("l", 100, this.client);
     });
     this.$arrow_left.addEventListener('mouseup',()=>{
       moveCar("s", 250, this.client);
@@ -125,7 +125,7 @@ window.customElements.define('svg-r', class extends HTMLElement {
 
     //up Button
     this.$arrow_up.addEventListener('mousedown',()=>{
-      moveCar("f", 250, this.client);
+      moveCar("f", 100, this.client);
     });
     this.$arrow_up.addEventListener('mouseup',()=>{
       moveCar("s", 250, this.client);
@@ -133,7 +133,7 @@ window.customElements.define('svg-r', class extends HTMLElement {
 
     //down Button
     this.$arrow_down.addEventListener('mousedown',()=>{
-      moveCar("b", 250, this.client);
+      moveCar("b", 100, this.client);
     });
     this.$arrow_down.addEventListener('mouseup',()=>{
       moveCar("s", 250, this.client);
