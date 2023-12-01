@@ -107,71 +107,36 @@ window.customElements.define('svg-r', class extends HTMLElement {
   }
 
    connectedCallback() {
-    //click events:
-    let onOffBool = false;
-
     //right Button
     this.$arrow_right.addEventListener('mousedown',()=>{
-      console.log('arrow_right!');
-      this.client.publish('bally/directions', JSON.stringify({
-        "direction": "r",
-        "speed": 250
-      }));
+      moveCar("r", 250, this.client);
     });
     this.$arrow_right.addEventListener('mouseup',()=>{
-      console.log('arrow_right exit!');
-      this.client.publish('bally/directions', JSON.stringify({
-        "direction": "s",
-        "speed": 250
-      }));
+      moveCar("s", 250, this.client);
     });
 
     //left Button
     this.$arrow_left.addEventListener('mousedown',()=>{
-      console.log('arrow_left!');
-      this.client.publish('bally/directions', JSON.stringify({
-        "direction": "l",
-        "speed": 250
-      }));
+      moveCar("l", 250, this.client);
     });
     this.$arrow_left.addEventListener('mouseup',()=>{
-      console.log('arrow_left exit!');
-      this.client.publish('bally/directions', JSON.stringify({
-        "direction": "s",
-        "speed": 250
-      }));
+      moveCar("s", 250, this.client);
     });
 
     //up Button
     this.$arrow_up.addEventListener('mousedown',()=>{
-      console.log('arrow_up!');
-      this.client.publish('bally/directions', JSON.stringify({
-        "direction": "f",
-        "speed": 250
-      }));
+      moveCar("f", 250, this.client);
     });
     this.$arrow_up.addEventListener('mouseup',()=>{
-      console.log('arrow_up exit!');
-      this.client.publish('bally/directions', JSON.stringify({
-        "direction": "s",
-        "speed": 250
-      }));
+      moveCar("s", 250, this.client);
     });
 
     //down Button
     this.$arrow_down.addEventListener('mousedown',()=>{
-      console.log('arrow_down!');
-      this.client.publish('bally/directions', JSON.stringify({
-        "direction": "b",
-        "speed": 250
-      }));
+      moveCar("b", 250, this.client);
     });
     this.$arrow_down.addEventListener('mouseup',()=>{
-      console.log('arrow_down exit!');
-      this.client.publish('bally/directions', JSON.stringify({
-        "direction": "s",
-        "speed": 250
-      }));
+      moveCar("s", 250, this.client);
     });
 
     //additional Flash functionality; not quite sure what we will be using this for
@@ -182,24 +147,24 @@ window.customElements.define('svg-r', class extends HTMLElement {
           "flash": "0"
         }));
         flashInt = true;
+        this.$middle_btn.setAttribute('style', "fill: url(#img_stop_B");
       } else if (flashInt == true) 
       {
         this.client.publish('bally/flash', JSON.stringify({
           "flash": "1"
         }));
         flashInt = false;
-      }
-
-
-      if (onOffBool == false) {
-        onOffBool = true;
-        this.$middle_btn.setAttribute('style', "fill: url(#img_stop_B");
-      } else if (onOffBool == true) {
-        onOffBool = false;
         this.$middle_btn.setAttribute('style', "fill: url(#img_start_B");
       }
-      alert('middle_btn!')
     });
+
+    function moveCar(direction, speed, ourClient){
+      //console.log(direction);
+      ourClient.publish('bally/directions', JSON.stringify({
+        "direction": direction,
+        "speed": speed
+      }));
+    }
   }
 });
 
