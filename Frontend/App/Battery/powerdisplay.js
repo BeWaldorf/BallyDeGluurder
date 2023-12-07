@@ -13,9 +13,7 @@ template.innerHTML = /*html*/`
     }
     div{
         display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        background-color: rgba(33, 255, 33);;
+        background-color: rgba(33, 255, 33);
         margin-left: auto;
         margin-right: auto;
         width: 300px;
@@ -29,7 +27,6 @@ template.innerHTML = /*html*/`
 `;
 //#endregion TEMPLATE
 
-
 //#region CLASS
 window.customElements.define('powerdisplay-r', class extends HTMLElement {
    constructor() {
@@ -37,19 +34,21 @@ window.customElements.define('powerdisplay-r', class extends HTMLElement {
      this._shadowRoot = this.attachShadow({ 'mode': 'open' });
      this._shadowRoot.appendChild(template.content.cloneNode(true));  
      this.$display = this._shadowRoot.querySelector('div');
-     this._list = ["level", "level","level", "level"];
+     
+     //subscription based code placeholder, to read the power level of the battery
+     this._powerLevel = 4;
+     //<<>>
   }
 
    connectedCallback() {
     //make our powercell icons
-    this._list.forEach((level)=>{
-        let newElement = document.createElement('div');
-        newElement.setAttribute('class',level);
-        this.$display.appendChild(newElement);
-    })
+    for (let i = 0; i < this._powerLevel; i++){
+      let newElement = document.createElement('div');
+      newElement.setAttribute('class', "level");
+      this.$display.appendChild(newElement);
+    }
   }
 });
-
 //#endregion CLASS
 
 /*

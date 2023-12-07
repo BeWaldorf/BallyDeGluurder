@@ -60,7 +60,7 @@ template.innerHTML = /*html*/`
       } 
   </style>
   <body>
-    <h1>Car goes vroooem</h1>
+    <h1>Auto doet vroooem</h1>
     <div id="navbar"><nav-r></nav-r></div>
     <div id="container" containerMode="Controller">
     </div>
@@ -78,7 +78,7 @@ window.customElements.define('app-r', class extends HTMLElement {
     }
 
     connectedCallback() {
-      removeThemAll(this.$container); //remove all childeren
+      killAllChildren(this.$container); //remove all childeren
 
       let newElement = document.createElement('screen-r');
       this.$container.appendChild(newElement);
@@ -87,7 +87,7 @@ window.customElements.define('app-r', class extends HTMLElement {
       this.$container.appendChild(newElement);
 
       //following function removes all childeren
-      function removeThemAll(mother){
+      function killAllChildren(mother){
         while (mother.firstChild) {
           mother.removeChild(mother.lastChild);
         }
@@ -95,16 +95,17 @@ window.customElements.define('app-r', class extends HTMLElement {
 
       this.addEventListener('nav-clicked-event', (e) => {
         this.$container.setAttribute("containerMode", e.detail);
+
         //change the containers contents based on the mode it is in.
         if (e.detail == "Controller"){
-          removeThemAll(this.$container); //remove all childeren
+          killAllChildren(this.$container); //remove all childeren
           let newElement = document.createElement('screen-r');
           this.$container.appendChild(newElement);
   
           newElement = document.createElement('svg-r');
           this.$container.appendChild(newElement);
         } else if (e.detail == "Battery"){
-          removeThemAll(this.$container); //remove all childeren
+          killAllChildren(this.$container); //remove all childeren
           newElement = document.createElement('powerdisplay-r');
           this.$container.appendChild(newElement);
   
@@ -114,7 +115,6 @@ window.customElements.define('app-r', class extends HTMLElement {
       });
     }
 });
-
 //#endregion CLASS
 
 /*

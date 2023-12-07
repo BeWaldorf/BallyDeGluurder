@@ -18,7 +18,6 @@ template.innerHTML = /*html*/`
 `;
 //#endregion TEMPLATE
 
-
 //#region CLASS
 window.customElements.define('nav-r', class extends HTMLElement {
    constructor() {
@@ -33,17 +32,38 @@ window.customElements.define('nav-r', class extends HTMLElement {
   }
 
    connectedCallback() {
-    //create a new item for each link in our array of links.
+    //innitialize the nav links
     this._list.forEach((link)=>{
+      let newElement = document.createElement('navitem-r');
+      //set the name and title. From the title, the container mode will change from our NavItem's methode.
+      newElement.setAttribute('title', link);
+      //append the child
+      this.$nav.appendChild(newElement);
+    });
+    
+
+    //event secondary event listener when an nav item is clicked. This one changes the selecte attribute
+    this.addEventListener('nav-clicked-event', (e) => {
+      //remove all previous children
+      while (this.$nav.firstChild) {
+        this.$nav.removeChild(this.$nav.lastChild);
+      }
+
+      //add the new BETTER children
+      this._list.forEach((link)=>{
         let newElement = document.createElement('navitem-r');
-        //set the name, title, and as a result, the container mode we will use, using the navItem's methode.
+        //set the name and title. From the title, the container mode will change from our NavItem's methode.
         newElement.setAttribute('title', link);
+        //the following 2 change the attribute "select" which influences your nav tab's CSS
+        newElement.setAttribute('select', "false");
+        if (link == e.detail){newElement.setAttribute('select', "true");}
         //append the child
         this.$nav.appendChild(newElement);
-    })
-  }
+      });
+    });
+   }
+  
 });
-
 //#endregion CLASS
 
 /*

@@ -7,23 +7,22 @@ template.innerHTML = /*html*/`
   <style>
     div{
         display: flex;
-        flex-wrap: wrap;
-        align-items: center;
         background-color: rgba(33, 255, 33);
         margin-left: auto;
         margin-right: auto;
-        width: 500px;
+        margin-bottom: 5px;
+        margin-top: 5px;
+        padding: 10px;
+        width: 500px;        
     }
   </style>
   <body>
     <p>Hoeveel bedraagd het rendement? </p>
     <div>
-      <p> filler for the actual efficiency Object </p>
     </div>
   </body>
 `;
 //#endregion TEMPLATE
-
 
 //#region CLASS
 window.customElements.define('efficiency-r', class extends HTMLElement {
@@ -31,11 +30,11 @@ window.customElements.define('efficiency-r', class extends HTMLElement {
      super();
      this._shadowRoot = this.attachShadow({ 'mode': 'open' });
      this._shadowRoot.appendChild(template.content.cloneNode(true));  
-     this.$display = this._shadowRoot.querySelector('div');
+     this.$text = this._shadowRoot.querySelector('div');
   }
 
    connectedCallback() {
-    //
+    this.$text.innerHTML = "We kunnen nog " + "20" + " minuten rond rijden!";
   }
 });
 //#endregion CLASS
