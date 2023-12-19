@@ -42,6 +42,9 @@ int speed = 0;
 unsigned long startMillis = 0;
 unsigned long lastMessageMillis = 0;
 
+unsigned long lastBatteryPublishMillis = 0;
+const long batteryPublishInterval = 1000;
+
 WiFiManager wifiManager(WIFI_SSID, WIFI_PASSWORD);
 MQTTManager mqttManager(espClient, MQTT_SERVER, MQTT_PORT, MQTT_USER, MQTT_PASSWORD, MQTT_CLIENTID.c_str());
 
@@ -123,22 +126,28 @@ void callbackMQTT(char *topic, byte *payload, unsigned int length)
   newMQTTMessage = true;
   printMqttMessage(topic, payload, length);
 
-  Serial.println("Parsing JSON" + String((char *)payload));
+  Serial.println(topic);
+  Serial.println(topic == "bally/directions");
 
-  DynamicJsonDocument doc(1024);
-  deserializeJson(doc, payload);
+  if (strcmp(topic, "bally/directions") == 0)
+  {
+    Serial.println("Parsing JSON" + String((char *)payload));
 
-  direction = doc["direction"].as<String>().charAt(0);
-  speed = doc["speed"].as<int>();
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, payload);
 
-  Serial.print("Direction: ");
-  Serial.println(direction);
-  Serial.print("Speed: ");
-  Serial.println(speed);
+    direction = doc["direction"].as<String>().charAt(0);
+    speed = doc["speed"].as<int>();
 
-  clearDisplay();
-  updateMotorControl(direction, speed); // Deze functie stuurt de motoren aan en tekent de sliders
-  showDisplay();
+    Serial.print("Direction: ");
+    Serial.println(direction);
+    Serial.print("Speed: ");
+    Serial.println(speed);
+
+    clearDisplay();
+    updateMotorControl(direction, speed); // Deze functie stuurt de motoren aan en tekent de sliders
+    showDisplay();
+  }
 }
 
 void setup()
@@ -146,10 +155,18 @@ void setup()
   Serial.begin(115200);
   initDisplay();
 
+  // Initialize LEDC channel for left motor
+  ledcSetup(MOTOR_LEFT_PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
+  ledcAttachPin(MOTOR1_ENA, MOTOR_LEFT_PWM_CHANNEL);
+
+  // Initialize LEDC channel for right motor
+  ledcSetup(MOTOR_RIGHT_PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
+  ledcAttachPin(MOTOR2_ENB, MOTOR_RIGHT_PWM_CHANNEL);
+
   wifiManager.connect();
   mqttManager.setCallback(callbackMQTT);
   mqttManager.connect();
-  mqttManager.subscribe("bally/joystick");
+  mqttManager.subscribe("bally/#");
 }
 
 void loop()
@@ -164,6 +181,24 @@ void loop()
     mqttManager.loop();
 
     int batteryLevel = readBatteryLevel();
+
+    unsigned long currentMillis = millis();
+    if (currentMillis - lastBatteryPublishMillis >= batteryPublishInterval)
+    {
+      DynamicJsonDocument doc(1024);
+      doc["battery"] = batteryLevel;
+
+      // Serialize JSON object to String
+      String payload;
+      serializeJson(doc, payload);
+      Serial.println(payload); // For debugging
+
+      // Publish battery level to MQTT topic
+      mqttManager.publish("/bally/battery", payload.c_str());
+
+      // Update the last publish time
+      lastBatteryPublishMillis = currentMillis;
+    }
 
     clearDisplay();
     updateMotorControl(direction, speed);
