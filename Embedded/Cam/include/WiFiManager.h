@@ -6,14 +6,19 @@
 class WiFiManager
 {
 public:
-    WiFiManager(const char *ssid, const char *password);
+    WiFiManager(const char *SSID, const char *PASSWORD, const int LED_PIN);
     void connect();
     bool isConnected();
-    void reconnectIfNeeded();
+    void loop();
 
 private:
-    const char *ssid;
-    const char *password;
+    const char *SSID;
+    const char *PASSWORD;
+    const int LED_PIN;
+    unsigned long lastConnectAttemptMillis;
+    static const unsigned long RECONNECT_INTERVAL = 30000; // 30 seconds
+
+    void reconnectIfNeeded();
 };
 
 #endif

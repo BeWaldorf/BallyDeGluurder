@@ -13,6 +13,7 @@ public:
     void loop();
     void subscribe(const char *topic);
     void publish(const char *topic, const char *payload);
+    void printMessage(char *topic, byte *payload, unsigned int length);
 
 private:
     PubSubClient mqttClient;

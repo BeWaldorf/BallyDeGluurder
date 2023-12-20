@@ -1,16 +1,16 @@
 #include "WiFiManager.h"
 
-WiFiManager::WiFiManager(const char *ssid, const char *password)
+WiFiManager::WiFiManager(const char *SSID, const char *PASSWORD, const int LED_PIN)
+    : SSID(SSID), PASSWORD(PASSWORD), LED_PIN(LED_PIN)
 {
-    this->ssid = ssid;
-    this->password = password;
 }
 
 void WiFiManager::connect()
 {
+    pinMode(LED_PIN, OUTPUT);
     Serial.print("Connecting to WiFi ..");
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    WiFi.begin(SSID, PASSWORD);
     while (WiFi.status() != WL_CONNECTED)
     {
         Serial.print(".");
@@ -24,10 +24,29 @@ bool WiFiManager::isConnected()
     return WiFi.status() == WL_CONNECTED;
 }
 
+void WiFiManager::loop()
+{
+    unsigned long currentMillis = millis();
+
+    if (isConnected())
+    {
+        digitalWrite(LED_PIN, LOW);
+    }
+    else
+    {
+        digitalWrite(LED_PIN, HIGH);
+    }
+
+    if (!isConnected() && currentMillis - lastConnectAttemptMillis >= RECONNECT_INTERVAL)
+    {
+        reconnectIfNeeded();
+    }
+}
+
 void WiFiManager::reconnectIfNeeded()
 {
-    if (!isConnected())
-    {
-        connect();
-    }
+    Serial.println("Reconnecting WiFi");
+    WiFi.disconnect();
+    WiFi.reconnect();
+    lastConnectAttemptMillis = millis();
 }
