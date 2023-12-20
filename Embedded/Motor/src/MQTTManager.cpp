@@ -54,3 +54,15 @@ void MQTTManager::publish(const char *topic, const char *payload)
 {
     mqttClient.publish(topic, payload);
 }
+
+void MQTTManager::printMessage(char *topic, byte *payload, unsigned int length)
+{
+    Serial.print("Boodschap ontvangen voor topic [");
+    Serial.print(topic);
+    Serial.print("] : ");
+    for (int i = 0; i < length; i++)
+    {
+        Serial.print((char)payload[i]);
+    }
+    Serial.println();
+}

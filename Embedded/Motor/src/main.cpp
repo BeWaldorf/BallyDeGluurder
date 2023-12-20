@@ -4,10 +4,11 @@
 #include "WiFiManager.h"
 #include "MQTTManager.h"
 #include "display.h"
+#include "MotorDriver.h"
 
 WiFiClient espClient;
 
-const char *WIFI_SSID = "BillyTheRobot";
+const char *WIFI_SSID = "BillyTheRobot1";
 const char *WIFI_PASSWORD = "eloict1234";
 
 const char *MQTT_SERVER = "23.97.138.160";
@@ -45,8 +46,9 @@ unsigned long lastMessageMillis = 0;
 unsigned long lastBatteryPublishMillis = 0;
 const long batteryPublishInterval = 1000;
 
-WiFiManager wifiManager(WIFI_SSID, WIFI_PASSWORD);
+WiFiManager wifiManager(WIFI_SSID, WIFI_PASSWORD, LED_PIN);
 MQTTManager mqttManager(espClient, MQTT_SERVER, MQTT_PORT, MQTT_USER, MQTT_PASSWORD, MQTT_CLIENTID.c_str());
+MotorDriver motorDriver(MOTOR1_ENA, MOTOR1_IN1, MOTOR1_IN2, MOTOR2_IN3, MOTOR2_IN4, MOTOR2_ENB);
 
 int readBatteryLevel()
 {
@@ -57,77 +59,47 @@ int readBatteryLevel()
   return level;
 }
 
-void printMqttMessage(char *topic, byte *payload, unsigned int length)
-{
-  Serial.print("Boodschap ontvangen voor topic [");
-  Serial.print(topic);
-  Serial.print("] : ");
-  for (int i = 0; i < length; i++)
-  {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
-}
-
 void updateMotorControl(char direction, int speed)
 {
-  ledcWrite(MOTOR_LEFT_PWM_CHANNEL, speed);
-  delay(15);
+  motorDriver.drive(direction, speed);
+
+  int leftSpeed = 0;
+  int rightSpeed = 0;
 
   if (direction == 'f')
   {
-    digitalWrite(MOTOR1_IN1, HIGH);
-    digitalWrite(MOTOR1_IN2, LOW);
-    digitalWrite(MOTOR2_IN3, HIGH);
-    digitalWrite(MOTOR2_IN4, LOW);
-    drawVerticalSlider(0, speed, "Links");
-    drawVerticalSlider(44, speed, "Rechts");
+    leftSpeed = speed;
+    rightSpeed = speed;
   }
   else if (direction == 'b')
   {
-    digitalWrite(MOTOR1_IN1, LOW);
-    digitalWrite(MOTOR1_IN2, HIGH);
-    digitalWrite(MOTOR2_IN3, LOW);
-    digitalWrite(MOTOR2_IN4, HIGH);
-    drawVerticalSlider(0, -speed, "Links");
-    drawVerticalSlider(44, -speed, "Rechts");
+    leftSpeed = -speed;
+    rightSpeed = -speed;
   }
   else if (direction == 'l')
   {
-    digitalWrite(MOTOR1_IN1, LOW);
-    digitalWrite(MOTOR1_IN2, HIGH);
-    digitalWrite(MOTOR2_IN3, HIGH);
-    digitalWrite(MOTOR2_IN4, LOW);
-    drawVerticalSlider(0, speed, "Links");
-    drawVerticalSlider(44, 0, "Rechts");
+    leftSpeed = -speed;
+    rightSpeed = speed;
   }
   else if (direction == 'r')
   {
-    digitalWrite(MOTOR1_IN1, HIGH);
-    digitalWrite(MOTOR1_IN2, LOW);
-    digitalWrite(MOTOR2_IN3, LOW);
-    digitalWrite(MOTOR2_IN4, HIGH);
-    drawVerticalSlider(0, 0, "Links");
-    drawVerticalSlider(44, speed, "Rechts");
+    leftSpeed = speed;
+    rightSpeed = -speed;
   }
   else if (direction == 's')
   {
-    digitalWrite(MOTOR1_IN1, LOW);
-    digitalWrite(MOTOR1_IN2, LOW);
-    digitalWrite(MOTOR2_IN3, LOW);
-    digitalWrite(MOTOR2_IN4, LOW);
-    drawVerticalSlider(0, 0, "Links");
-    drawVerticalSlider(44, 0, "Rechts");
+    leftSpeed = 0;
+    rightSpeed = 0;
   }
+
+  drawVerticalSlider(0, leftSpeed, "Links");
+  drawVerticalSlider(44, rightSpeed, "Rechts");
 }
 
 void callbackMQTT(char *topic, byte *payload, unsigned int length)
 {
   newMQTTMessage = true;
-  printMqttMessage(topic, payload, length);
-
-  Serial.println(topic);
-  Serial.println(topic == "bally/directions");
+  mqttManager.printMessage(topic, payload, length);
 
   if (strcmp(topic, "bally/directions") == 0)
   {
@@ -138,11 +110,6 @@ void callbackMQTT(char *topic, byte *payload, unsigned int length)
 
     direction = doc["direction"].as<String>().charAt(0);
     speed = doc["speed"].as<int>();
-
-    Serial.print("Direction: ");
-    Serial.println(direction);
-    Serial.print("Speed: ");
-    Serial.println(speed);
 
     clearDisplay();
     updateMotorControl(direction, speed); // Deze functie stuurt de motoren aan en tekent de sliders
@@ -155,23 +122,15 @@ void setup()
   Serial.begin(115200);
   initDisplay();
 
-  // Initialize LEDC channel for left motor
-  ledcSetup(MOTOR_LEFT_PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
-  ledcAttachPin(MOTOR1_ENA, MOTOR_LEFT_PWM_CHANNEL);
-
-  // Initialize LEDC channel for right motor
-  ledcSetup(MOTOR_RIGHT_PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
-  ledcAttachPin(MOTOR2_ENB, MOTOR_RIGHT_PWM_CHANNEL);
-
   wifiManager.connect();
   mqttManager.setCallback(callbackMQTT);
   mqttManager.connect();
-  mqttManager.subscribe("bally/#");
+  mqttManager.subscribe("bally/directions");
 }
 
 void loop()
 {
-  wifiManager.reconnectIfNeeded();
+  wifiManager.loop();
   if (wifiManager.isConnected())
   {
     if (!mqttManager.isConnected())
@@ -191,10 +150,9 @@ void loop()
       // Serialize JSON object to String
       String payload;
       serializeJson(doc, payload);
-      Serial.println(payload); // For debugging
 
       // Publish battery level to MQTT topic
-      mqttManager.publish("/bally/battery", payload.c_str());
+      mqttManager.publish("bally/battery", payload.c_str());
 
       // Update the last publish time
       lastBatteryPublishMillis = currentMillis;
