@@ -28,6 +28,8 @@ void WiFiManager::loop()
 {
     unsigned long currentMillis = millis();
 
+    Serial.println(WiFi.RSSI());
+
     if (isConnected())
     {
         digitalWrite(LED_PIN, LOW);
