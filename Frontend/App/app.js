@@ -4,7 +4,7 @@
 * Written by Philip Mulders
 *
 * components ending on -r are by Philip Mulders
-* components ending on    are by Zoran
+* components ending on -z  are by Zoran
 *
 *-------------------------------------------------------------------------------------------------
 */
@@ -99,17 +99,17 @@ window.customElements.define('app-r', class extends HTMLElement {
         //change the containers contents based on the mode it is in.
         if (e.detail == "Controller"){
           killAllChildren(this.$container); //remove all childeren
-          let newElement = document.createElement('screen-r');
+          let newElement = document.createElement('screen-z');
           this.$container.appendChild(newElement);
   
           newElement = document.createElement('svg-r');
           this.$container.appendChild(newElement);
         } else if (e.detail == "Battery"){
           killAllChildren(this.$container); //remove all childeren
-          newElement = document.createElement('powerdisplay-r');
+          newElement = document.createElement('powerdisplay-z');
           this.$container.appendChild(newElement);
   
-          newElement = document.createElement('efficiency-r');
+          newElement = document.createElement('efficiency-z');
           this.$container.appendChild(newElement);
         }
       });
@@ -122,6 +122,6 @@ window.customElements.define('app-r', class extends HTMLElement {
 * Documentation: Written by Philip Mulders
 *
 * components ending on -r are by Philip Mulders
-* components ending on    are by Zoran
+* components ending on -z  are by Zoran
 *
 */

@@ -1,4 +1,5 @@
 //#region IMPORTS
+import './clientsub.js';
 //#endregion IMPORTS
 
 //#region TEMPLATE
@@ -25,22 +26,32 @@ template.innerHTML = /*html*/`
 //#endregion TEMPLATE
 
 //#region CLASS
-window.customElements.define('efficiency-r', class extends HTMLElement {
-   constructor() {
-     super();
-     this._shadowRoot = this.attachShadow({ 'mode': 'open' });
-     this._shadowRoot.appendChild(template.content.cloneNode(true));  
-     this.$text = this._shadowRoot.querySelector('div');
+window.customElements.define('efficiency-z', class extends HTMLElement {
+  constructor() {
+    super();
+    this._shadowRoot = this.attachShadow({ 'mode': 'open' });
+    this._shadowRoot.appendChild(template.content.cloneNode(true));
+    this.$text = this._shadowRoot.querySelector('div');
+    this._shadowRoot.appendChild(document.createElement('clientsub-z'));
+
   }
 
-   connectedCallback() {
-    this.$text.innerHTML = "We kunnen nog " + "20" + " minuten rond rijden!";
+  connectedCallback() {
+
+    this.addEventListener('clientsub-event', (e) => {
+
+      const timeLeftIndex = 3;
+      this._usableRunTime = e.detail[timeLeftIndex];
+
+      this.$text.innerHTML = "We kunnen nog " + this._usableRunTime + " minuten rond rijden!";
+
+    });
   }
 });
 //#endregion CLASS
 
 /*
 *-------------------------------------------------------------------------------------------------
-* Made by Philip Mulders
+* Made by Zoran Bovin
 *-------------------------------------------------------------------------------------------------
 */
