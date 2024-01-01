@@ -39,22 +39,22 @@ window.customElements.define('clientsub-z', class extends HTMLElement {
     }
 
     connectedCallback() {
-        
-        let thing = this.client.subscribe('bally/battery');
-        let ourComponent = this;
-        this.client.on('message', function (topic, payload, packet) {
-            //put recieved payload in variable as string
+        this.client.subscribe('bally/battery');
+
+        this.client.on('message', (topic, payload, packet) => {
+            //put received payload in variable as a string
             let message = payload.toString();
 
-            //make a bubbling methode from this object, so both 'powerdisplay' and 'efficiency' can acces this.
+            //make a bubbling method from this object, so both 'powerdisplay' and 'efficiency' can access this.
             const clientSub = new CustomEvent('clientsub-event', { detail: message, bubbles: true, composed: true });
-            ourComponent.dispatchEvent(clientSub);
+            this.dispatchEvent(clientSub);
         });
 
-        this.client.on('error', function (error) {
+        this.client.on('error', (error) => {
             console.log(error);
         });
     }
+
 });
 //#endregion CLASS
 
