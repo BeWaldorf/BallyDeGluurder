@@ -20,6 +20,7 @@ template.innerHTML = /*html*/`
   <body>
     <p>Hoeveel bedraagd het rendement? </p>
     <div>
+     We kunnen nog ??? minuten om rond te rijden!
     </div>
   </body>
 `;
@@ -31,20 +32,20 @@ window.customElements.define('efficiency-z', class extends HTMLElement {
     super();
     this._shadowRoot = this.attachShadow({ 'mode': 'open' });
     this._shadowRoot.appendChild(template.content.cloneNode(true));
-    this.$text = this._shadowRoot.querySelector('div');
+    this.$div = this._shadowRoot.querySelector('div');
     this._shadowRoot.appendChild(document.createElement('clientsub-z'));
-
   }
 
   connectedCallback() {
 
     this.addEventListener('clientsub-event', (e) => {
-
-      const timeLeftIndex = 3;
-      this._usableRunTime = e.detail[timeLeftIndex];
-
-      this.$text.innerHTML = "We kunnen nog " + this._usableRunTime + " minuten rond rijden!";
-
+      let messageT = e.detail;
+      //console.log(messageT);
+      //split recieved message to get time left
+      let messageArr = messageT.split(",");
+      let timeLeft = messageArr[3].split(":");
+      let timeLeftVal = timeLeft[1].slice(0, -1);
+      this.$div.innerHTML = "We kunnen nog " + timeLeftVal + " minuten om rond te rijden!";
     });
   }
 });

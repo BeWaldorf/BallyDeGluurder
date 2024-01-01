@@ -36,25 +36,42 @@ window.customElements.define('powerdisplay-z', class extends HTMLElement {
     this._shadowRoot.appendChild(template.content.cloneNode(true));
     this.$display = this._shadowRoot.querySelector('div');
     this._shadowRoot.appendChild(document.createElement('clientsub-z'));
-
-
   }
 
   connectedCallback() {
 
+    let percentage = 1;
+
+    //remove the old battery parts
+    while (this.$display.firstChild) {
+      this.$display.removeChild(this.$display.lastChild);
+    }
+
+    //make our powercell icons
+    for (let i = 0; i < percentage; i++) {
+      let newElement = document.createElement('div');
+      newElement.setAttribute('class', "level");
+      this.$display.appendChild(newElement);
+    }
+
     this.addEventListener('clientsub-event', (e) => {
+      //split recieved message to get percentage
+      let messageT = e.detail;
+      let messageArr = messageT.split(",");
+      let percent = messageArr[1].split(":");
+      console.log(percent[1]);
 
-      const percentageIndex = 1;
-      // Convert the percentage value from the range 0-100 to 0-5
-      this._powerLevel = (e.detail[percentageIndex] / 100) * 5;
+      percentage = Math.floor(percent[1] / 20);
+      console.log(percentage);
 
-      for (let i = 0; i < this._powerLevel; i++) {
+      while (this.$display.firstChild) {
+        this.$display.removeChild(this.$display.lastChild);
+      }
+      for (let i = 0; i < percentage; i++) {
         let newElement = document.createElement('div');
         newElement.setAttribute('class', "level");
         this.$display.appendChild(newElement);
       }
-
-
     });
   }
 });
