@@ -5,7 +5,7 @@
 let template = document.createElement('template');
 template.innerHTML = /*html*/`
   <style>
-        div {
+        img {
         height: 400px;
         width: 800px;
         margin-left: auto;
@@ -51,7 +51,7 @@ window.customElements.define('screen-z', class extends HTMLElement {
 
 
 
-    var img = document.getElementById('liveStream');
+    var img = this._shadowRoot.getElementById('liveStream');
     var socket = new WebSocket('ws://23.97.138.160:3000');
 
     socket.onmessage = function (event) {

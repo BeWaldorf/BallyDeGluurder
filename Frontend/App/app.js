@@ -60,7 +60,7 @@ template.innerHTML = /*html*/`
       } 
   </style>
   <body>
-    <h1>Auto doet vroooem</h1>
+    <h1>Bally de gluurende auto</h1>
     <div id="navbar"><nav-r></nav-r></div>
     <div id="container" containerMode="Controller">
     </div>
@@ -80,7 +80,7 @@ window.customElements.define('app-r', class extends HTMLElement {
     connectedCallback() {
       killAllChildren(this.$container); //remove all childeren
 
-      let newElement = document.createElement('screen-r');
+      let newElement = document.createElement('screen-z');
       this.$container.appendChild(newElement);
 
       newElement = document.createElement('svg-r');
@@ -122,6 +122,6 @@ window.customElements.define('app-r', class extends HTMLElement {
 * Documentation: Written by Philip Mulders
 *
 * components ending on -r are by Philip Mulders
-* components ending on -z  are by Zoran
+* components ending on -z  are by Zoran Bovin
 *
 */
