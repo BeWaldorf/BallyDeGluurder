@@ -1,16 +1,16 @@
 #include "CameraManager.h"
 #include "Arduino.h"
 
-CameraManager::CameraManager(int FLASH_PIN, int PWM_FREQUENCY, int PWM_LED_CHANNEL, int PWM_RESOLUTION)
-    : FLASH_PIN(FLASH_PIN), PWM_FREQUENCY(PWM_FREQUENCY), PWM_LED_CHANNEL(PWM_LED_CHANNEL), PWM_RESOLUTION(PWM_RESOLUTION)
+CameraManager::CameraManager(int FLASH_PIN)
+    : FLASH_PIN(FLASH_PIN)
 {
 }
 
 bool CameraManager::initialize()
 {
     pinMode(FLASH_PIN, OUTPUT);
-    ledcSetup(PWM_LED_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
-    ledcAttachPin(FLASH_PIN, PWM_LED_CHANNEL);
+    // ledcSetup(PWM_LED_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
+    // ledcAttachPin(FLASH_PIN, PWM_LED_CHANNEL);
 
     // Camera configuration
     camera_config_t config;
@@ -28,8 +28,8 @@ bool CameraManager::initialize()
     config.pin_pclk = PCLK_GPIO_NUM;
     config.pin_vsync = VSYNC_GPIO_NUM;
     config.pin_href = HREF_GPIO_NUM;
-    config.pin_sscb_sda = SIOD_GPIO_NUM;
-    config.pin_sscb_scl = SIOC_GPIO_NUM;
+    config.pin_sccb_sda = SIOD_GPIO_NUM;
+    config.pin_sccb_scl = SIOC_GPIO_NUM;
     config.pin_pwdn = PWDN_GPIO_NUM;
     config.pin_reset = RESET_GPIO_NUM;
     config.xclk_freq_hz = 20000000;
@@ -49,5 +49,6 @@ bool CameraManager::initialize()
 
 void CameraManager::setFlash(int value)
 {
-    ledcWrite(PWM_LED_CHANNEL, value);
+    analogWrite(FLASH_PIN, value);
+    // ledcWrite(PWM_LED_CHANNEL, value);
 }

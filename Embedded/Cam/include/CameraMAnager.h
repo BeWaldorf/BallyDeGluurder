@@ -9,15 +9,12 @@
 class CameraManager
 {
 public:
-    CameraManager(int FLASH_PIN, int PWM_FREQUENCY, int PWM_LED_CHANNEL, int PWM_RESOLUTION);
+    CameraManager(int FLASH_PIN);
     bool initialize();
     void setFlash(int value);
 
 private:
     int FLASH_PIN;
-    int PWM_FREQUENCY;
-    int PWM_LED_CHANNEL;
-    int PWM_RESOLUTION;
 };
 
 #endif // CameraManager_h

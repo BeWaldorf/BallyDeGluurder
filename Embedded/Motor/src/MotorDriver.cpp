@@ -8,7 +8,6 @@ MotorDriver::MotorDriver(const int EN1, const int IN1, const int IN2, const int 
 
 void MotorDriver::setup()
 {
-    // Set all the motor control pins to output
     pinMode(EN1, OUTPUT);
     pinMode(IN1, OUTPUT);
     pinMode(IN2, OUTPUT);
@@ -19,7 +18,6 @@ void MotorDriver::setup()
 
 void MotorDriver::forward(int speed)
 {
-    // Implement motor forward logic
     digitalWrite(IN1, HIGH);
     digitalWrite(IN2, LOW);
     digitalWrite(IN3, HIGH);
@@ -30,7 +28,6 @@ void MotorDriver::forward(int speed)
 
 void MotorDriver::backward(int speed)
 {
-    // Implement motor backward logic
     digitalWrite(IN1, LOW);
     digitalWrite(IN2, HIGH);
     digitalWrite(IN3, LOW);
@@ -41,7 +38,6 @@ void MotorDriver::backward(int speed)
 
 void MotorDriver::left(int speed)
 {
-    // Implement turning left logic
     digitalWrite(IN1, LOW);
     digitalWrite(IN2, HIGH);
     digitalWrite(IN3, HIGH);
@@ -52,7 +48,6 @@ void MotorDriver::left(int speed)
 
 void MotorDriver::right(int speed)
 {
-    // Implement turning right logic
     digitalWrite(IN1, HIGH);
     digitalWrite(IN2, LOW);
     digitalWrite(IN3, LOW);
@@ -63,7 +58,6 @@ void MotorDriver::right(int speed)
 
 void MotorDriver::stop()
 {
-    // Implement motor stop logic
     digitalWrite(IN1, LOW);
     digitalWrite(IN2, LOW);
     digitalWrite(IN3, LOW);
@@ -74,7 +68,6 @@ void MotorDriver::stop()
 
 void MotorDriver::drive(char direction, int speed)
 {
-    // Implement drive logic
     if (direction == 'f')
     {
         forward(speed);

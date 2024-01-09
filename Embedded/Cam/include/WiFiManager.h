@@ -16,7 +16,7 @@ private:
     const char *PASSWORD;
     const int LED_PIN;
     unsigned long lastConnectAttemptMillis;
-    static const unsigned long RECONNECT_INTERVAL = 30000; // 30 seconds
+    static const unsigned long RECONNECT_INTERVAL = 30000;
 
     void reconnectIfNeeded();
 };
