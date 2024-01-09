@@ -1,111 +1,29 @@
 import express from 'express';
 import { WebSocketServer } from 'ws';
-//import { spawn } from 'child_process';
-import ffmpeg from 'fluent-ffmpeg';
+import http from 'http';
 
-const PORT = 3000;
-const APP = express();
-const WSS = new WebSocketServer({ port: 8080 });
-const sensorData = [];
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
 
-// #region WEBSERVER
-// ---------------------------------------
-//APP.use("/embedded", express.static("../frontend/dashboard"));
-// ---------------------------------------
-// #endregion
+wss.on('connection', (ws) => {
+    console.log('Client connected');
+    
+    ws.send("server");
 
-
-// #region REST API
-// ---------------------------------------
-/* ---ACTIVATE MIDDLEWARE--- */
-
-
-/* const ffmpegProcess = spawn('ffmpeg', [
-    '-stream_loop', '-1',
-    '-i', '/home/waldorf/example.mp4',
-    '-c:v', 'copy',
-    '-c:a', 'aac',
-    '-fflags', '+genpts',
-    '-f', 'flv',
-    'http://127.0.0.1:3000'
-  ]); */
-
-  // Handle FFmpeg process events
-/* ffmpegProcess.stdout.on('data', data => {
-    console.log(`stdout: ${data}`);
-  });
-  
-  ffmpegProcess.stderr.on('data', data => {
-    console.error(`stderr: ${data}`);
-  });
-  
-  ffmpegProcess.on('close', code => {
-    console.log(`child process exited with code ${code}`);
-  }); */
-
-
-APP.use(express.json());
-
-
-/* ---ENDPOINTS--- */
-APP.get("/getData", (req, res) => {
-    let newData=[];
-    sensorData.forEach(data=>{
-        newData.push(data.temperature)
-    });
-    res.send(JSON.stringify(newData));
-});
-
-APP.get('/vidya',(req,res)=>{
-    const command = ffmpeg('/home/waldorf/example.mp4').format('mpegts');
-
-    command.pipe(res, { end: true });
-
-})
-
-//http://192.168.0.4:2022/update-sensor
-APP.post("/update-sensor", (req, res) => {
-    console.log("Full data: ", req.body)
-    const { temperature, humidity } = req.body;
-    console.log("temperature: ", temperature);
-    console.log("humidity: ", humidity);
-    sensorData.push(req.body);
-
-    WSS.on('connection', ws => {
-        console.log('New client connected!')
-        ws.send(humidity)
-
-        ws.on('close', () => {
-            console.log('Client has disconnected!')
-        })
+    ws.on('message', (message) => {
+        console.log(message);        
+        wss.clients.forEach(function each(client) {
+           client.send(message);
+        });
         
-        ws.onerror =  () => {
-            console.log('websocket error')
-        }
-    })
-    return res.status(200).send()  //OK
-});
-// ---------------------------------------
-// #endregion
-
-// #region WEBSOCKETS
-// ---------------------------------------
-WSS.on('connection', ws => {
-    console.log('New client connected!')
-    ws.send('connection established')
+    });
 
     ws.on('close', () => {
-        console.log('Client has disconnected!')
-    })
-    
-    ws.onerror =  () => {
-        console.log('websocket error')
-    }
-})
-// ---------------------------------------
-// #endregion
+        console.log('Client disconnected');
+    });
+});
 
-
-APP.listen(PORT, () => {
-    console.log(`App running at http://localhost:${PORT}`);
+server.listen(3000, () => {
+    console.log('Server is running on port 3000');
 });
